@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  patient-checkout
+
+  Sample SAM Template for patient-checkout
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 20
+
+Resources:
+  PatientCheckoutLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: PatientCheckout
+      Handler: net.shyshkin.study.aws.serverless.s3sns.PatientCheckoutLambda::handleRequest
+      Runtime: java11
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Environment:
+        Variables:
+          PATIENT_CHECKOUT_TOPIC: !Ref PatientCheckoutSNSTopic
+      Events:
+        PatientCheckout:
+          Type: S3
+          Properties:
+            Bucket: !Ref PatientCheckoutS3Bucket
+            Events: s3:ObjectCreated:*
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt PatientCheckoutSNSTopic.TopicName
+      DeadLetterQueue:
+        Type: SNS
+        TargetArn: !Ref PatientCheckoutDLQ
+      EventInvokeConfig:
+        MaximumRetryAttempts: 1
+
+  PatientCheckoutS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}
+
+  PatientCheckoutSNSTopic:
+    Type: AWS::SNS::Topic
+
+  PatientCheckoutDLQ:
+    Type: AWS::SNS::Topic
+
+  BillManagementLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: PatientCheckout
+      Handler: net.shyshkin.study.aws.serverless.s3sns.BillManagementLambda::handleRequest
+      Runtime: java11
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Events:
+        PatientBillingSNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref PatientCheckoutSNSTopic
+
+  ErrorHandlerLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PatientCheckout
+      Handler: net.shyshkin.study.aws.serverless.s3sns.ErrorHandler::handleRequest
+      Runtime: java11
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Events:
+        DLQEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref PatientCheckoutDLQ
+
+  ClaimManagementLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PatientCheckout
+      Handler: net.shyshkin.study.aws.serverless.sqs.ClaimManagementLambda::handleRequest
+      Runtime: java11
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Events:
+        ClaimSqsEvent:
+          Type: SQS
+          Properties:
+            BatchSize: 5
+            Queue: !GetAtt ClaimManagementQueue.Arn
+
+  ClaimManagementQueue:
+    Type: AWS::SQS::Queue
+

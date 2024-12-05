@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  customers-api
+
+  Sample SAM Template for customers-api
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 20
+    Runtime: java11
+    Architectures:
+      - x86_64
+    MemorySize: 256
+    Environment:
+      Variables:
+        CUSTOMER_TABLE: !Ref CustomersTable
+
+Resources:
+  CreateCustomerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: CustomersApi
+      Handler: net.shyshkin.study.aws.serverless.api.CreateCustomerFunction::handleRequest
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomersTable
+      Events:
+        CreateNewCustomer:
+          Type: Api
+          Properties:
+            Path: /customers
+            Method: post
+
+  ReadCustomersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CustomersApi
+      Handler: net.shyshkin.study.aws.serverless.api.ReadCustomersFunction::handleRequest
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CustomersTable
+      Events:
+        CreateNewCustomer:
+          Type: Api
+          Properties:
+            Path: /customers
+            Method: get
+
+  CustomersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: Number
+
+Outputs:
+  CustomersApi:
+    Description: "API Gateway endpoint URL for Prod stage for Customers API"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/customers"
+

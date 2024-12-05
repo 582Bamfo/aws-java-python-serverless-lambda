@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  parameters-and-types
+
+  Sample SAM Template for parameters-and-types
+
+Globals:
+  Function:
+#    Timeout: 20 #default is 3 seconds
+    Runtime: java11
+    Architectures:
+      - x86_64
+    MemorySize: 128
+    CodeUri: ParametersAndTypes
+
+Resources:
+
+  GetNumberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getNumber
+
+  GetBooleanFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getBoolean
+
+  GetWrappedDoubleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getWrappedDouble
+
+  GetListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getScores
+
+  GetScoresByNameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getScoresByName
+
+  SaveEmployeeDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::saveEmployeeData
+
+  GetStudentsScoresFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.DataTypes::getStudentScores
+
+  GetClinicalDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.Pojos::getClinicalData
+
+  InputOutputStreamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.InputOutputStreams::getOutput
+
+  ViewContextFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.ContextExample::viewContext
+
+  TimeoutExampleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 1
+      Handler: net.shyshkin.study.aws.serverless.parameters.ContextExample::timeoutExample
+
+  ViewEnvironmentVariablesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.Variables::viewEnvironmentVariables
+      Environment:
+        Variables:
+          MY_ENV_VAR_1: This is environment variable very important value
+
+
+  ColdStartBasicsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.Variables::coldStartBasics
+
+  TruckTrackerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.assignment.TruckTracker::truckTracker
+
+  GetTicketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: net.shyshkin.study.aws.serverless.parameters.assignment.TicketService::getTicket
+
+
